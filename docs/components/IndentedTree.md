@@ -9,7 +9,7 @@ order: 2
 
 ```tsx
 import React from 'react';
-import { IndentedTree, IIndentedTreeData } from '@luoluo/material/components';
+import { IndentedTree, IIndentedTreeData } from '@luo-luo/material/components';
 const data: IIndentedTreeData = {
   id: '1',
   title: '公司总部',
