@@ -1,17 +1,13 @@
-# HierarchicalOrganizationChart
+# luoluo的物料库
 
-[![NPM version](https://img.shields.io/npm/v/HierarchicalOrganizationChart.svg?style=flat)](https://npmjs.org/package/HierarchicalOrganizationChart)
-[![NPM downloads](http://img.shields.io/npm/dm/HierarchicalOrganizationChart.svg?style=flat)](https://npmjs.org/package/HierarchicalOrganizationChart)
+[![NPM version](https://img.shields.io/npm/v/@luo-luo/material.svg?style=flat)](https://npmjs.org/package/@luo-luo/material)
+[![NPM downloads](http://img.shields.io/npm/dm/@luo-luo/material.svg?style=flat)](https://npmjs.org/package/@luo-luo/material)
 
-层级组织结构图
+从业务抽离出来的组件，hook,以及代码片段
 
-## Usage
+## Install
 
-TODO
-
-## Options
-
-TODO
+`npm i @luo-luo/material`
 
 ## Development
 
