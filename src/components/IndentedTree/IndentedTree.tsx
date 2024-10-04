@@ -89,10 +89,17 @@ reactNode.getAnchorPoints = () => [
 ];
 G6.registerNode('tree-node', reactNode);
 
+
+const minimap = new G6.Minimap();
+
+// todo 增加tooltip
+// const tooltip = new G6.Tooltip();
+
+
 const default_width = 960;
 const default_height = 480;
 const IndentedTree = (props: IIndentedTreeProps) => {
-  const { data, onNodeClick = () => {},style } = props;
+  const { data, onNodeClick = () => {},style,showMiniMap = false } = props;
   const containerRef = React.useRef<HTMLDivElement>(null);
   const graphRef = React.useRef<TreeGraph>();
   useLayoutEffect(() => {}, []);
@@ -154,6 +161,7 @@ const IndentedTree = (props: IIndentedTreeProps) => {
           return 40;
         },
       },
+      plugins: [showMiniMap&&minimap],
     });
     /**
      * 点击事件处理
@@ -190,7 +198,7 @@ const IndentedTree = (props: IIndentedTreeProps) => {
   return (
     <div className="luoluo-indented-tree" style={style}>
       {!isEmpty(data) ? (
-        <div ref={containerRef} style={{ height: '100%', width: '100%' }}></div>
+        <div className='luoluo-indented-tree-container' ref={containerRef}></div>
       ) : (
         <Empty style={{ paddingTop: 40}} />
       )}

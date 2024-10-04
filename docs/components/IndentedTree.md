@@ -7,8 +7,10 @@ order: 2
 
 一个用来展示具有树状层级组织结构数据类型的组件
 
+
+## 示例
 ```tsx
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { IndentedTree, IIndentedTreeData } from '@luo-luo/material/components';
 const data: IIndentedTreeData = {
   id: '1',
@@ -89,5 +91,34 @@ const data: IIndentedTreeData = {
     },
   ],
 };
-export default () => <IndentedTree data={data} onNodeClick={console.log} />;
+export default () => {
+  const [treeData, setTreeData] = useState(data);
+  return <IndentedTree data={treeData} onNodeClick={console.log} />;
+};
 ```
+
+## API 文档
+
+### IIndentedTreeProps 接口
+
+| 属性名      | 类型                     | 是否必填 | 默认值   | 描述                                       |
+|-------------|--------------------------|----------|----------|--------------------------------------------|
+| data        | IIndentedTreeData        | 是       | -        | 树形结构的数据源                           |
+| style       | React.CSSProperties      | 否       | -        | 用于自定义组件的样式                       |
+| showMiniMap | boolean                  | 否       | false    | 当设置为 true 时，显示迷你地图以帮助导航大型树结构 |
+| onNodeClick | (e: IIndentedTreeData) => void | 否 | -        | 节点被点击时触发的回调函数，参数 e 是被点击节点的数据 |
+
+
+### IIndentedTreeData 接口
+
+| 属性名      | 类型            | 是否必填  | 默认值    | 描述                                      |
+|------------|----------------|----------|----------|------------------------------------------|
+| id         | string         | 是       | -        | 每个数据节点的唯一标识符                  |
+| title      | string         | 是       | -        | 节点标题，通常显示在用户界面上               |
+| text       | string         | 否       | -        | 节点附加文本信息，可用于提供额外描述             |
+| clickable  | boolean        | 否       | true     | 指示节点是否可点击                       |
+| collapsed  | boolean        | 否       | false    | 指示节点是否默认折叠                     |
+| children   | IIndentedTreeData[] | 否  | -        | 子节点数组，允许创建多级树形结构             |
+
+
+

@@ -10,5 +10,6 @@ export interface IIndentedTreeData {
 export interface IIndentedTreeProps {
   data: IIndentedTreeData;
   style?:React.CSSProperties
+  showMiniMap?: boolean;
   onNodeClick?: (e: IIndentedTreeData) => void;
 }
