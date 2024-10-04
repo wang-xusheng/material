@@ -1,6 +1,6 @@
 {
   "name": "@luo-luo/material",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "业务组件库",
   "license": "MIT",
   "module": "dist/index.js",
