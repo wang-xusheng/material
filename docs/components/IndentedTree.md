@@ -93,7 +93,7 @@ const data: IIndentedTreeData = {
 };
 export default () => {
   const [treeData, setTreeData] = useState(data);
-  return <IndentedTree data={treeData} onNodeClick={console.log} />;
+  return <IndentedTree data={treeData} onNodeClick={console.log} showMiniMap/>;
 };
 ```
 
@@ -107,7 +107,8 @@ export default () => {
 | style       | React.CSSProperties      | 否       | -        | 用于自定义组件的样式                       |
 | showMiniMap | boolean                  | 否       | false    | 当设置为 true 时，显示迷你地图以帮助导航大型树结构 |
 | onNodeClick | (e: IIndentedTreeData) => void | 否 | -        | 节点被点击时触发的回调函数，参数 e 是被点击节点的数据 |
-
+| showTooltip | boolean                  | 否       | false    | 当设置为 true 时，显示节点标题的 tooltip |
+| renderTooltip| (e: IG6GraphEvent) => React.ReactNode | 否 | -| 自定义节点标题的 tooltip 内容，参数 e 是当前鼠标移动到节点时的事件对象 |
 
 ### IIndentedTreeData 接口
 

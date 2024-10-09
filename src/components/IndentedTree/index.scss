@@ -1,4 +1,5 @@
 .luoluo-indented-tree{
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,6 +8,7 @@
   overflow: auto;
 
   &-container{
+    background-color: #fff;
     position: relative;
     width: 100%;
     height: 100%;

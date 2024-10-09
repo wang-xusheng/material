@@ -1,4 +1,4 @@
-import G6, { ModelConfig, TreeGraph } from '@antv/g6';
+import G6, { IG6GraphEvent, ModelConfig, TreeGraph } from '@antv/g6';
 import {
   Group,
   Marker,
@@ -6,23 +6,26 @@ import {
   Text,
   createNodeFromReact,
 } from '@antv/g6-react-node';
-import { Empty } from 'antd';
-import { isEmpty } from 'lodash';
-import React, { useEffect, useLayoutEffect } from 'react';
+import { useMouse } from 'ahooks';
+import { Card, Empty } from 'antd';
+import { cloneDeep, isEmpty } from 'lodash';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import fittingString from './fittingString';
-import './index.scss'
+import './index.scss';
+import ToolBar from './ToolBar';
 import { IIndentedTreeData, IIndentedTreeProps } from './types';
-
-
 const Title = ({ title }: { title: string }) => (
   // @ts-ignore
-  <Text style={{ fill: '#fff', fontSize: 16 }}>
+  <Text name="title" style={{ fill: '#fff', fontSize: 16 }}>
     {fittingString(title, 120, 16)}
   </Text>
 );
 const Content = ({ text }: { text: string }) => (
-  // @ts-ignore
-  <Text style={{ fill: '#fff', margin: [3, 0, 0, 0], fontSize: 14 }}>
+  <Text
+    name="content"
+    // @ts-ignore
+    style={{ fill: '#fff', margin: [3, 0, 0, 0], fontSize: 14 }}
+  >
     {fittingString(text, 120, 14)}
   </Text>
 );
@@ -31,7 +34,7 @@ const Node = ({ cfg }: { cfg: ModelConfig }) => {
     id,
     title,
     text,
-    clickable=true,
+    clickable = true,
     children = [],
   } = cfg as unknown as IIndentedTreeData;
   const hasChildren = !isEmpty(children);
@@ -46,12 +49,12 @@ const Node = ({ cfg }: { cfg: ModelConfig }) => {
           stroke: '#eee',
           radius: 8,
           flexDirection: 'column',
-          cursor: 'pointer',
           justifyContent: 'space-between',
           alignItems: 'center',
         }}
       >
         <Rect
+          name="text"
           style={{
             width: 130,
             height: 53,
@@ -82,27 +85,33 @@ const Node = ({ cfg }: { cfg: ModelConfig }) => {
     </Group>
   );
 };
-const reactNode = createNodeFromReact(Node)
+const reactNode = createNodeFromReact(Node);
 reactNode.getAnchorPoints = () => [
   [0.5, 0],
   [0.5, 1],
 ];
 G6.registerNode('tree-node', reactNode);
 
-
 const minimap = new G6.Minimap();
-
-// todo 增加tooltip
-// const tooltip = new G6.Tooltip();
-
 
 const default_width = 960;
 const default_height = 480;
 const IndentedTree = (props: IIndentedTreeProps) => {
-  const { data, onNodeClick = () => {},style,showMiniMap = false } = props;
+  const {
+    data,
+    onNodeClick = () => {},
+    style,
+    showMiniMap = false,
+    renderTooltip,
+    showTooltip,
+  } = props;
+
+  const [treeData, setTreeData] = useState<IIndentedTreeData>(cloneDeep(data));
   const containerRef = React.useRef<HTMLDivElement>(null);
   const graphRef = React.useRef<TreeGraph>();
-  useLayoutEffect(() => {}, []);
+  const mouseContext = useRef<IG6GraphEvent | null | undefined>();
+  const [isFullScrene, SetIsFullScrene] = useState(false);
+  const mouse = useMouse();
   /**
    * 初始化 G6 的 TreeGraph
    */
@@ -161,7 +170,7 @@ const IndentedTree = (props: IIndentedTreeProps) => {
           return 40;
         },
       },
-      plugins: [showMiniMap&&minimap],
+      plugins: [showMiniMap && minimap],
     });
     /**
      * 点击事件处理
@@ -177,6 +186,19 @@ const IndentedTree = (props: IIndentedTreeProps) => {
       const { x, y, style, depth, type, ...other } = item.getModel(); //去除一些无用属性
       onNodeClick({ ...other } as unknown as IIndentedTreeData);
     });
+
+    /**
+     * mousemove事件处理
+     */
+    graph.on('mousemove', (evt) => {
+      const responseElements = ['node', 'title', 'content', 'collapse-icon'];
+      const name = evt.target.get('name');
+      if (responseElements.includes(name)) {
+        mouseContext.current = evt;
+      } else {
+        mouseContext.current = null;
+      }
+    });
     graphRef.current = graph;
     console.log('gaphRef就绪');
   });
@@ -185,7 +207,7 @@ const IndentedTree = (props: IIndentedTreeProps) => {
    * 监听数据变化，更新图
    */
   useEffect(() => {
-    graphRef.current?.changeData(data);
+    graphRef.current?.changeData(treeData);
     graphRef.current?.fitView();
     graphRef.current?.getNodes().forEach((node) => {
       const model = node.getModel();
@@ -193,14 +215,85 @@ const IndentedTree = (props: IIndentedTreeProps) => {
         graphRef.current?.setItemState(node, 'collapsed', true);
       }
     });
-  }, [data]);
+  }, [treeData]);
+
+  /**
+   * 监听窗口大小变化，重新计算图宽高
+   */
+  useEffect(() => {
+    graphRef.current?.changeSize(
+      containerRef.current?.clientWidth || default_width,
+      containerRef.current?.clientHeight || default_height,
+    );
+    graphRef.current?.fitView();
+  }, [containerRef.current?.clientWidth, containerRef.current?.clientHeight]);
+
+  /**
+   * tooltip默认渲染函数
+   */
+  const _renderTooltip = (mouseContext: IG6GraphEvent | null | undefined) => {
+    if (isEmpty(mouseContext)) {
+      return null;
+    }
+    try {
+      const { canvasX, canvasY, item } = mouseContext;
+      const model = item?.getModel();
+      return (
+        <Card
+          title={model?.title as string}
+          bordered={false}
+          style={{
+            position: 'absolute',
+            top: canvasY + 10,
+            left: canvasX + 10,
+          }}
+        >
+          <p className="tooltip-text">{model?.text as string}</p>
+        </Card>
+      );
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const Tooltip = useMemo(() => {
+    return renderTooltip
+      ? renderTooltip(mouseContext.current)
+      : _renderTooltip(mouseContext.current);
+  }, [mouse]);
+  /**
+   * 复位
+   */
+  const reset = () => {
+    setTreeData(cloneDeep(data));
+  };
+
+  /**
+   * 全屏
+   */
+  const fullScreen = () => {
+    if (!isFullScrene) {
+      containerRef.current?.requestFullscreen();
+      SetIsFullScrene(true);
+    } else {
+      if(document.fullscreenElement){
+        document.exitFullscreen();
+        SetIsFullScrene(false);
+      }else{
+        SetIsFullScrene(false);
+      }
+    }
+  };
 
   return (
     <div className="luoluo-indented-tree" style={style}>
-      {!isEmpty(data) ? (
-        <div className='luoluo-indented-tree-container' ref={containerRef}></div>
+      {!isEmpty(treeData) ? (
+        <div className="luoluo-indented-tree-container" ref={containerRef}>
+          {showTooltip && showTooltip && Tooltip}
+          <ToolBar isFullScreen={isFullScrene} reset={reset} fullScreen={fullScreen}/>
+        </div>
       ) : (
-        <Empty style={{ paddingTop: 40}} />
+        <Empty style={{ paddingTop: 40 }} />
       )}
     </div>
   );
